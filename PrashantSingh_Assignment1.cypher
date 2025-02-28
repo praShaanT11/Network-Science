@@ -55,6 +55,60 @@ WHERE p.role IN ['Batsman', 'Batswoman', 'Allrounder']
 RETURN p.name, p.role, t.name, r.career_runs
 ORDER BY r.career_runs DESC;
 
+
+//Deleting Previous Indian Coach
+MATCH(Dravid {name: "Rahul Dravid"})
+DETACH DELETE Dravid
+
+//Giving index to every players
+
+MATCH (p:PLAYER)
+WITH p ORDER BY p.name 
+WITH collect(p) AS players
+UNWIND range(0, size(players) - 1) AS index
+WITH players[index] AS player, index + 1 AS player_id
+SET player.player_id = player_id
+RETURN player.name, player.player_id;
+
+MATCH (t:TEAM {name: "India"})  
+SET t.coach = "Gautam Gambhir"  
+RETURN t.name, t.coach;
+
+match(n) return n
+
+//Players apart from rohit sharma
+MATCH (player:PLAYER) 
+WHERE player.name <> "Rohit Sharma"
+RETURN player
+
+//Players of team Australia
+MATCH (p:PLAYER)-[:PLAYS_FOR]->(t:TEAM{name: 'Australia'})  
+RETURN p.name;
+
+
+//Properties of node Player
+MATCH (p:PLAYER) 
+RETURN p, properties(p) AS all_properties 
+
+
+//Removing Current Coach of India
+MATCH (t:TEAM {name: "India"})  
+SET t.coach = NULL  
+
+
+//Top 5 players with Most Number of matches
+
+MATCH (p:PLAYER)-[r:PLAYS_FOR]->(t:TEAM)  
+RETURN p.name as Player, SUM(r.matches) AS total_matches_played  
+ORDER BY total_matches_played DESC  
+LIMIT 5;
+
+//Total Runs scored by players
+MATCH (player:PLAYER)-[gamePlayed:PLAYED_AGAINST]->(team:TEAM)
+RETURN player.name, SUM(gamePlayed.runs) AS total_runs
+ORDER BY total_runs DESC;
+
+
 CREATE
 (virat:PLAYER{name:"Virat Kohli", age: 35, role:"Batsman", batting_style:"Right-hand", bowling_style:"Right-arm medium"}),
 (rohit:PLAYER{name:"Rohit Sharma", age: 36, role:"Batsman", batting_style:"Right-hand", bowling_style:"Off-spin"}),
@@ -159,54 +213,3 @@ CREATE
 (rashid)-[:PLAYED_AGAINST {runs_conceded: 60, overs: 8, wickets: 4}]->(india),
 (stokes)-[:PLAYED_AGAINST {runs_conceded: 50, overs: 8, wickets: 2}]->(australia);
 
-//Deleting Previous Indian Coach
-MATCH(Dravid {name: "Rahul Dravid"})
-DETACH DELETE Dravid
-
-//Giving index to every players
-
-MATCH (p:PLAYER)
-WITH p ORDER BY p.name 
-WITH collect(p) AS players
-UNWIND range(0, size(players) - 1) AS index
-WITH players[index] AS player, index + 1 AS player_id
-SET player.player_id = player_id
-RETURN player.name, player.player_id;
-
-MATCH (t:TEAM {name: "India"})  
-SET t.coach = "Gautam Gambhir"  
-RETURN t.name, t.coach;
-
-match(n) return n
-
-//Players apart from rohit sharma
-MATCH (player:PLAYER) 
-WHERE player.name <> "Rohit Sharma"
-RETURN player
-
-//Players of team Australia
-MATCH (p:PLAYER)-[:PLAYS_FOR]->(t:TEAM{name: 'Australia'})  
-RETURN p.name;
-
-
-//Properties of node Player
-MATCH (p:PLAYER) 
-RETURN p, properties(p) AS all_properties 
-
-
-//Removing Current Coach of India
-MATCH (t:TEAM {name: "India"})  
-SET t.coach = NULL  
-
-
-//Top 5 players with Most Number of matches
-
-MATCH (p:PLAYER)-[r:PLAYS_FOR]->(t:TEAM)  
-RETURN p.name as Player, SUM(r.matches) AS total_matches_played  
-ORDER BY total_matches_played DESC  
-LIMIT 5;
-
-//Total Runs scored by players
-MATCH (player:PLAYER)-[gamePlayed:PLAYED_AGAINST]->(team:TEAM)
-RETURN player.name, SUM(gamePlayed.runs) AS total_runs
-ORDER BY total_runs DESC;
